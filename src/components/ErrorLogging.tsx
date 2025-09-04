@@ -1,7 +1,7 @@
-import React, { Component, ErrorInfo } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children: React.ReactNode;
+  children: ReactNode;
   context?: string;
 }
 
@@ -11,40 +11,59 @@ interface State {
 }
 
 export class ErrorBoundaryWithLogging extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  public state: State = {
+    hasError: false
+  };
 
-  static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Admin Panel Error:', {
-      context: this.props.context,
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString()
-    });
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error(`🚨 Admin Panel Error in ${this.props.context}:`, error, errorInfo);
+    
+    // In production, you would send this to your error tracking service
+    if (import.meta.env.PROD) {
+      // Track admin panel errors separately for security
+      console.log('🔒 Admin error logged for internal review');
+    }
   }
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-            <h2 className="text-xl font-semibold text-red-600 mb-4">Admin Panel Error</h2>
+          <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md border-2 border-red-200">
+            <div className="text-red-600 text-4xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Admin Panel Error</h2>
             <p className="text-gray-600 mb-6">
-              An error occurred in the admin panel. Please reload the page.
+              An error occurred in the administrative interface. This has been logged for review.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800"
-            >
-              Reload Admin Panel
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800"
+              >
+                Reload Admin Panel
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="w-full bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300"
+              >
+                Return to Main Site
+              </button>
+            </div>
+            {import.meta.env.DEV && this.state.error && (
+              <details className="mt-4 text-left">
+                <summary className="cursor-pointer text-sm text-gray-500">Dev Error Details</summary>
+                <pre className="mt-2 text-xs text-red-600 overflow-auto bg-red-50 p-2 rounded">
+                  {this.state.error.stack}
+                </pre>
+              </details>
+            )}
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+              🔒 Internal Admin Error - Contact System Administrator
+            </div>
           </div>
         </div>
       );

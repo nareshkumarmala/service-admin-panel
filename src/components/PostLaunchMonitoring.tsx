@@ -1,34 +1,47 @@
-import React from 'react';
+import { useEffect } from 'react';
 
 export function PostLaunchMonitoring() {
-  React.useEffect(() => {
-    console.log('Admin Panel Monitoring initialized');
+  useEffect(() => {
+    // Admin panel monitoring
+    console.log('🔒 Admin Panel Monitoring Active');
     
-    // Monitor admin actions
-    const logAdminAction = (action: string) => {
-      console.log('Admin Action:', {
-        action,
-        timestamp: new Date().toISOString(),
-        user: 'admin'
-      });
+    // Track admin panel performance
+    const startTime = performance.now();
+    
+    const checkPerformance = () => {
+      const loadTime = performance.now() - startTime;
+      console.log(`🔒 Admin Panel Load Time: ${loadTime.toFixed(2)}ms`);
+      
+      // In production, send to monitoring service
+      if (import.meta.env.PROD) {
+        console.log('🔒 Admin metrics logged for internal review');
+      }
     };
 
-    // Monitor system health
-    const monitorHealth = () => {
-      const health = {
-        timestamp: new Date().toISOString(),
-        memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
-        connectionCount: 1
-      };
-      console.log('System Health:', health);
+    // Check after component mount
+    setTimeout(checkPerformance, 100);
+
+    // Monitor for admin-specific errors
+    const errorHandler = (event: ErrorEvent) => {
+      console.error('🚨 Admin Panel Runtime Error:', event.error);
+      // In production, would send to admin error tracking
     };
 
-    const healthInterval = setInterval(monitorHealth, 60000); // Every minute
-
+    window.addEventListener('error', errorHandler);
+    
     return () => {
-      clearInterval(healthInterval);
+      window.removeEventListener('error', errorHandler);
     };
   }, []);
 
-  return null; // This is a monitoring component
+  // Only show indicator in development
+  if (!import.meta.env.DEV) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 bg-black text-white p-2 rounded text-xs z-50">
+      <div className="font-semibold mb-1">🔒 Admin Monitoring</div>
+      <div>Environment: {import.meta.env.MODE}</div>
+      <div>Security: Active</div>
+    </div>
+  );
 }

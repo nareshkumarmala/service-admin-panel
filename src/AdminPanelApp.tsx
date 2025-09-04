@@ -15,7 +15,7 @@ const ADMIN_NOTIFICATIONS: Notification[] = [
   { id: '5', message: 'Security Alert: Multiple login attempts detected', time: '3 hours ago', read: true, type: 'security' },
 ];
 
-export default function App() {
+export default function AdminPanelApp() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('admin-login');
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -40,7 +40,11 @@ export default function App() {
 
   const initializeAdminPanel = async () => {
     try {
-      console.log('🔒 WayPartner Admin Panel Initializing...');
+      console.log('🔒 WayPartner Admin Panel Initializing...', {
+        isProduction: !supabaseConfig.isDemo,
+        timestamp: new Date().toISOString(),
+        environment: 'INTERNAL_ADMIN_ONLY'
+      });
       
       setConnectionStatus('connecting');
       const connectionTest = await testSupabaseConnection();
@@ -50,7 +54,7 @@ export default function App() {
         console.log('✅ Admin Panel - Connected to database');
       } else {
         setConnectionStatus('error');
-        console.log('⚠️ Admin Panel - Demo Mode');
+        console.error('❌ Admin database connection failed:', connectionTest);
       }
 
       // Check for existing admin session
@@ -63,6 +67,7 @@ export default function App() {
             setCurrentScreen('admin-dashboard');
           }
         } catch (error) {
+          console.error('Invalid admin session:', error);
           localStorage.removeItem('waypartner_admin_session');
         }
       }
@@ -79,8 +84,14 @@ export default function App() {
     setUser(adminUser);
     setCurrentScreen('admin-dashboard');
     
+    // Store admin session
     localStorage.setItem('waypartner_admin_session', JSON.stringify(adminUser));
-    console.log('🔐 Admin logged in:', adminUser.name);
+    
+    console.log('🔐 Admin logged in:', {
+      user: adminUser.name,
+      role: adminUser.role,
+      timestamp: new Date().toISOString()
+    });
   };
 
   const handleLogout = () => {
@@ -114,6 +125,7 @@ export default function App() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Panel</h2>
           <p className="text-gray-600 mb-4">Loading administrative interface...</p>
+          <div className="admin-restricted"></div>
           
           <div className="flex items-center justify-center space-x-2 text-sm">
             <div className={`w-2 h-2 rounded-full ${
@@ -132,6 +144,7 @@ export default function App() {
     );
   }
 
+  // Show admin login screen
   if (!user.isLoggedIn) {
     return (
       <ErrorBoundaryWithLogging context="AdminLogin">
@@ -141,13 +154,23 @@ export default function App() {
             connectionStatus={connectionStatus}
           />
           
-          <Toaster position="top-right" richColors />
+          <Toaster 
+            position="top-right"
+            richColors
+            expand={true}
+            toastOptions={{
+              className: 'font-medium',
+              duration: 4000,
+            }}
+          />
+          
           <PostLaunchMonitoring />
         </div>
       </ErrorBoundaryWithLogging>
     );
   }
 
+  // Show admin dashboard
   return (
     <ErrorBoundaryWithLogging context="AdminDashboard">
       <div className="min-h-screen bg-gray-50">
@@ -175,9 +198,25 @@ export default function App() {
           unreadCount={unreadCount}
         />
         
-        <Toaster position="top-right" richColors />
+        <Toaster 
+          position="top-right"
+          richColors
+          expand={true}
+          visibleToasts={3}
+          toastOptions={{
+            className: 'font-medium',
+            duration: 6000,
+            style: {
+              background: 'white',
+              border: '1px solid #d1d5db',
+              color: '#111827'
+            }
+          }}
+        />
+        
         <PostLaunchMonitoring />
         
+        {/* Admin performance metrics (always visible in dev) */}
         {import.meta.env.DEV && (
           <div className="fixed bottom-4 right-4 bg-gray-900 text-white p-2 rounded text-xs z-50">
             <div className="font-semibold mb-1">Admin Panel (Dev)</div>

@@ -1,8 +1,11 @@
-# WayPartner Admin Panel - SEO BLOCKED - INTERNAL USE ONLY
+# WayPartner Admin Panel - BLOCKED FROM ALL SEARCH ENGINES
+# INTERNAL USE ONLY - NO PUBLIC ACCESS
+
+# Block all crawlers
 User-agent: *
 Disallow: /
 
-# Block all search engines completely
+# Explicitly block major bots
 User-agent: Googlebot
 Disallow: /
 
@@ -13,12 +16,6 @@ User-agent: Slurp
 Disallow: /
 
 User-agent: DuckDuckBot
-Disallow: /
-
-User-agent: Baiduspider
-Disallow: /
-
-User-agent: YandexBot
 Disallow: /
 
 User-agent: facebookexternalhit
@@ -33,5 +30,8 @@ Disallow: /
 User-agent: WhatsApp
 Disallow: /
 
-# No sitemap provided - internal use only
-# Crawl-delay: N/A - crawling not allowed
+# No sitemap (Admin Panel must not appear in search)
+# Sitemap: NONE
+
+# Optional: Long crawl delay (ignored by most modern bots but safe)
+Crawl-delay: 86400
