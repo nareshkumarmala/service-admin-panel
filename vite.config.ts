@@ -10,24 +10,24 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 5176,
+    host: true
+  },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disabled for security in admin panel
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           supabase: ['@supabase/supabase-js'],
-          ui: ['lucide-react', 'sonner']
+          charts: ['recharts']
         }
       }
     }
   },
-  server: {
-    port: 5176,
-    host: true
-  },
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '2.1.0')
+    global: 'globalThis',
   }
 })
